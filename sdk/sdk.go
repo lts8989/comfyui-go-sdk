@@ -27,7 +27,7 @@ var _domain, _clientId string
 var _apiProtocol, _wsProtocol string
 var _pingSec, _reconnectSec uint
 
-func Setup(domain, clientId string, pingSec, reconnectSec uint) {
+func Setup(domain, clientId string, pingSec, reconnectSec uint) error {
 	// 根据domain判断API请求使用的协议
 	if len(domain) > 0 {
 		if domain[:5] == "https" {
@@ -37,6 +37,11 @@ func Setup(domain, clientId string, pingSec, reconnectSec uint) {
 			_apiProtocol = "http"
 			_wsProtocol = "ws"
 		}
+	}
+
+	if len(_apiProtocol) == 0 {
+		log.Error("setup的domain请携带协议，http 或者 https")
+		return errors.New("域名没有携带协议，http 或者 https")
 	}
 
 	// 过滤掉domain的协议部分和结尾斜杠
@@ -58,6 +63,8 @@ func Setup(domain, clientId string, pingSec, reconnectSec uint) {
 	} else {
 		_reconnectSec = 5
 	}
+
+	return nil
 }
 
 // callSDAPI 调用 sdapi 的统一方法
@@ -121,47 +128,54 @@ func structToQuery(p any) string {
 	return query.Encode()
 }
 
-// GetSystemStats 调用系统统计信息接口
+// GetSystemStats 服务状态
 func GetSystemStats() (*model.SystemStatsResp, error) {
 	responseBody, err := callSDAPI("/system_stats", Get, nil)
 	if err != nil {
+		log.Errorf("获取服务状态出错:%+v", err)
 		return nil, err
 	}
 
 	var stats model.SystemStatsResp
 	err = json.Unmarshal(responseBody, &stats)
 	if err != nil {
+		log.Errorf("获取服务状态解析出错:%+v", err)
 		return nil, err
-	}
-	if len(responseBody) > 0 {
-
 	}
 
 	return &stats, nil
 }
 
-// View 调用系统查询图片接口
+// View 获取图片
 func View(req model.ViewReq) ([]byte, error) {
 	responseBody, err := callSDAPI("/view", Get, req)
 	if err != nil {
+		log.Errorf("获取图片出错:%+v", err)
 		return nil, err
 	}
 	return responseBody, nil
 }
 
 // Prompt 绘图任务下发
-func Prompt(clientId string, prompt any) (*model.PromptResp, error) {
+func Prompt(clientId string, promptByte []byte) (*model.PromptResp, error) {
+	paramsObj := make(map[string]interface{})
+	if err := json.Unmarshal(promptByte, &paramsObj); err != nil {
+		log.Errorf("提示词转json出错，%+v", err)
+		return nil, err
+	}
 	req := model.PromptReq{
 		ClientId: clientId,
-		Prompt:   prompt,
+		Prompt:   paramsObj,
 	}
 	responseBody, err := callSDAPI("/prompt", Post, req)
 	if err != nil {
+		log.Errorf("绘图任务下发出错:%+v", err)
 		return nil, err
 	}
 	var resp model.PromptResp
 	err = json.Unmarshal(responseBody, &resp)
 	if err != nil {
+		log.Errorf("绘图任务下发解析json出错:%+v", err)
 		return nil, err
 	}
 	return &resp, nil
@@ -171,15 +185,18 @@ func Prompt(clientId string, prompt any) (*model.PromptResp, error) {
 func History(promptId string) ([]model.ViewReq, error) {
 	responseBody, err := callSDAPI("/history/"+promptId, Get, nil)
 	if err != nil {
+		log.Errorf("获取任务执行结果出错，promptId：%s,err:%+v", promptId, err)
 		return nil, err
 	}
 
 	var value map[string]interface{}
 	err = json.Unmarshal(responseBody, &value)
 	if err != nil {
+		log.Errorf("获取任务执行结果出错，promptId：%s,err:%+v,resp:%s", promptId, err, responseBody)
 		return nil, err
 	}
 
+	//region 解析并断言返回值中数据类型
 	vAny, ok := value[promptId]
 	if !ok {
 		return nil, errors.New("没有找到prompt_id")
@@ -229,8 +246,8 @@ func History(promptId string) ([]model.ViewReq, error) {
 		imageList := make([]model.ViewReq, 0)
 		_ = json.Unmarshal(by, &imageList)
 		list = append(list, imageList...)
-
 	}
+	//endregion
 
 	return list, nil
 
