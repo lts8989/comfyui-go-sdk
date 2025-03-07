@@ -13,7 +13,7 @@ ComfyUI SDK 是 [ComfyUI](https://github.com/comfyanonymous/ComfyUI) 服务的�
 
 ## 初始化
 
-调用 Setup 方法初始化参数。
+* 调用 Setup 方法初始化参数。
 
 | 参数名          | 类型     | 默认值 | 说明                                                |
 |--------------|--------|-----|---------------------------------------------------|
@@ -22,6 +22,7 @@ ComfyUI SDK 是 [ComfyUI](https://github.com/comfyanonymous/ComfyUI) 服务的�
 | pingSec      | uint   | 30  | 单位（秒）。心跳间隔时间，用于维持当前服务与 ComfyUI 服务的websocket 连接状态。 |
 | reconnectSec | uint   | 5   | 单位（秒）。如果 websocket 与 ComfyUI 服务断开链接，重连时间间隔。       |
 
+* 调用 [log.go](log/log.go) 文件中的 `InitLogger` 方法初始化日志模块，默认使用 `fmt` 输出。
 ## 实现的 HTTP 接口
 
 都在 [sdk.go](sdk/sdk.go) 文件中
