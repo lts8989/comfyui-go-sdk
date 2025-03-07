@@ -157,14 +157,14 @@ func View(req model.ViewReq) ([]byte, error) {
 }
 
 // Prompt 绘图任务下发
-func Prompt(clientId string, promptByte []byte) (*model.PromptResp, error) {
+func Prompt(promptByte []byte) (*model.PromptResp, error) {
 	paramsObj := make(map[string]interface{})
 	if err := json.Unmarshal(promptByte, &paramsObj); err != nil {
 		log.Errorf("提示词转json出错，%+v", err)
 		return nil, err
 	}
 	req := model.PromptReq{
-		ClientId: clientId,
+		ClientId: _clientId,
 		Prompt:   paramsObj,
 	}
 	responseBody, err := callSDAPI("/prompt", Post, req)

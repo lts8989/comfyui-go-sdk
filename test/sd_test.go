@@ -1,24 +1,26 @@
 package test
 
 import (
+	"fmt"
 	"github.com/lts8989/sd_sdk/model"
 	"github.com/lts8989/sd_sdk/sdk"
 	"os"
 	"testing"
 )
 
-const ClientId = "asdfasdf"
+const ClientId = "533ef3a3-39c0-4e39-9ced-37d290f371f8"
 
 func init() {
-	sdk.Setup("https://asdf.sdf.wer/", ClientId, 1, 2)
-
+	if err := sdk.Setup("https://rnuix-34-133-62-132.a.free.pinggy.link/", ClientId, 1, 2); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 func TestWsServer(t *testing.T) {
 	sdk.ConnectToWebSocket(receviedMsg)
 	select {}
 }
 
-// type ReceivedMsgFun func(WsReceive) error
 func receviedMsg(receive model.WsReceive) error {
 	return nil
 }
@@ -42,7 +44,7 @@ func TestPrompt(t *testing.T) {
 		t.Errorf("提示词文件打开错误，err:%+v", err)
 		return
 	}
-	promptResp, err := sdk.Prompt(ClientId, promptContent)
+	promptResp, err := sdk.Prompt(promptContent)
 	if err != nil {
 		t.Errorf("绘图任务下发api错误，err:%+v", err)
 		return
