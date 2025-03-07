@@ -2,8 +2,8 @@ package test
 
 import (
 	"fmt"
-	"github.com/lts8989/sd_sdk/model"
-	"github.com/lts8989/sd_sdk/sdk"
+	"github.com/lts8989/comfyui-go-sdk/model"
+	"github.com/lts8989/comfyui-go-sdk/sdk"
 	"os"
 	"testing"
 )

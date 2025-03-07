@@ -1,4 +1,4 @@
-module github.com/lts8989/sd_sdk
+module github.com/lts8989/comfyui-go-sdk
 
 go 1.22.12
 
